@@ -26,8 +26,16 @@ function Get-ProductBook {
 }
 
 
-##
-# last trade/tick, best bid/ask and 24h volume
+<#
+ .Synopsis
+  Get ticker for a specific ProductID
+
+ .Description
+  Snapshot information about the last trade (tick), best bid/ask and 24h volume.
+
+ .Parameter ProductID
+  The product-id to find the last trade for
+#>
 function Get-ProductTicker {
     param(
             [Parameter(Mandatory=$true)]$ProductID
@@ -35,7 +43,11 @@ function Get-ProductTicker {
     
     $endpoint = $Script:base,$ProductID,'ticker' -join '/'
     
-    return Invoke-GDAXEndpoint -Method Get -Path $endpoint
+    $ticker = Invoke-GDAXEndpoint -Method Get -Path $endpoint
+
+    $ticker |Add-Member -MemberType NoteProperty -Name product_id -Value $ProductID
+
+    return $ticker
 }
 
 
