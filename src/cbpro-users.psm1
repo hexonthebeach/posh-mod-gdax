@@ -1,5 +1,5 @@
 ###
-## GDAX API User Module
+## Coinbase Pro API Users Module
 ###
 
 $Script:base = '/users'
@@ -9,13 +9,13 @@ $Script:base = '/users'
   Get User details
 
  .Description
-  Read the User details from the GDAX API
+  Read the User details from the Coinbase Pro API
 #>
 Function Get-Self {
     
     $path = $Script:base,'self' -join '/'
 
-    return Invoke-GDAXEndpoint -Method Get -Path $path -Private
+    return Invoke-CBPROEndpoint -Method Get -Path $path -Private
 }
 
 
@@ -30,7 +30,7 @@ Function Get-TrailingVolume {
 
     $path =$Script:base,'self','trailing-volume' -join '/'
 
-    return Invoke-GDAXEndpoint -Method Get -Path $path -Private
+    return Invoke-CBPROEndpoint -Method Get -Path $path -Private
 }
 
 Export-ModuleMember Get-Self, Get-TrailingVolume

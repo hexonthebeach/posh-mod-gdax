@@ -1,10 +1,9 @@
 ﻿###
-## GDAX API Authentication Headers Module
+## Coinbase Pro API Authentication Headers Module
 ###
 
 ##
 # Set API credentials
-#    TODO: add some string validation
 function Set-Credentials {
     param(
         [Parameter(Mandatory=$true)]$Key,
@@ -12,13 +11,13 @@ function Set-Credentials {
         [Parameter(Mandatory=$true)]$Secret
     )
 
-    # Key by GDAX, should have some kind of structure
+    # Key by Coinbase Pro, should have some kind of structure
     $Script:key = $Key
 
-    # Passphrase entered is user input, so no validation, length > 1
+    # Passphrase entered is user input, so no validation, length > 0
     $Script:passphrase = $Passphrase
 
-    # Secret by GDAX, is base64 decodable
+    # Secret by Coinbase Pro, is base64 decodable
     $Script:secret = $Secret
 
     # check if the credentials are set correctly
@@ -35,7 +34,7 @@ function Get-Headers {
         [Parameter(Mandatory=$false)]$body = ''
     )
 
-    # get gdax credentials
+    # get coinbase pro credentials
     $cred = Get-Credentials
 
     # get unix timestamp of now
@@ -53,8 +52,8 @@ function Get-Headers {
     return @{
         'CB-ACCESS-KEY' = $cred.key;
         'CB-ACCESS-PASSPHRASE' = $cred.passphrase;
-        'CB-ACCESS-TIMESTAMP' = $timestamp;
         'CB-ACCESS-SIGN' = $signBase64;
+        'CB-ACCESS-TIMESTAMP' = $timestamp;
         'Content-Type' = 'application/json';
     }
 }
@@ -78,7 +77,7 @@ Function Get-Credentials {
     if( $Script:key.length -lt 1 -or
         $Script:passphrase.length -lt 1 -or
         $Script:secret.length -lt 1 ){
-            throw 'No Credentials are set. use Set-GDAXCredentials'
+            throw 'No Credentials are set. use Set-CBPROCredentials'
     }
 
     return @{

@@ -1,5 +1,5 @@
 ﻿###
-## GDAX API Products Module
+## Coinbase Pro API Products Module
 ###
 
 $Script:base = '/products'
@@ -8,7 +8,7 @@ $Script:base = '/products'
 ##
 # list products
 function Get-Products {
-    return Invoke-GDAXEndpoint -Method Get -Path ($Script:base)
+    return Invoke-CBPROEndpoint -Method Get -Path ($Script:base)
 }
 
 
@@ -22,7 +22,7 @@ function Get-ProductBook {
     
     $endpoint = $Script:base,$ProductID,'book' -join '/'
     
-    return Invoke-GDAXEndpoint -Method Get -Path $endpoint
+    return Invoke-CBPROEndpoint -Method Get -Path $endpoint
 }
 
 
@@ -43,7 +43,7 @@ function Get-ProductTicker {
     
     $endpoint = $Script:base,$ProductID,'ticker' -join '/'
     
-    $ticker = Invoke-GDAXEndpoint -Method Get -Path $endpoint
+    $ticker = Invoke-CBPROEndpoint -Method Get -Path $endpoint
 
     $ticker |Add-Member -MemberType NoteProperty -Name product_id -Value $ProductID
 
@@ -60,7 +60,7 @@ function Get-ProductTrades {
     
     $endpoint = $Script:base,$ProductID,'trades' -join '/'
     
-    return Invoke-GDAXEndpoint -Method Get -Path $endpoint
+    return Invoke-CBPROEndpoint -Method Get -Path $endpoint
 }
 
 
@@ -79,7 +79,7 @@ function Get-ProductCandles {
 
     $endpoint += '?granularity=' + $Granularity
     
-    $candles = Invoke-GDAXEndpoint -Method Get -Path $endpoint
+    $candles = Invoke-CBPROEndpoint -Method Get -Path $endpoint
 
     $return = $candles |ForEach-Object{ New-CandleObject -Candle $_ }
 
@@ -124,21 +124,21 @@ function Get-ProductStats {
     
     $path = $Script:base,$ProductID,'stats' -join '/'
     
-    return Invoke-GDAXEndpoint -Method Get -Path $path
+    return Invoke-CBPROEndpoint -Method Get -Path $path
 }
 
 
 ##
 # server time
 function Get-Time {
-    return Invoke-GDAXEndpoint -Method Get -Path '/time'
+    return Invoke-CBPROEndpoint -Method Get -Path '/time'
 }
 
 
 ##
 # list currencies
 function Get-Currencies {
-    return Invoke-GDAXEndpoint -Method GET -Path '/currencies'
+    return Invoke-CBPROEndpoint -Method GET -Path '/currencies'
 }
 
 
