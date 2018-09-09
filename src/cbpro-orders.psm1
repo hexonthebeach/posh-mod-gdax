@@ -308,15 +308,15 @@ Function Find-Fee {
 
     # filter the right product
     $product = $trail |Where-Object{ $_.product_id -eq $ProductID } |Select-Object -First 1
-    
+
     switch($true){
         # under 10 M
-        ($product.volume -lt 10.000.000) {
+        ([double]$product.volume -lt 10000000) {
             return 0.3
         }
 
         # over 100 M
-        ($product.volume -ge 100.000.000) {
+        ([double]$product.volume -ge 100000000) {
             return 0.1
         }
 
