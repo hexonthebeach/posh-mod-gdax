@@ -1,10 +1,10 @@
 ﻿###
-## GDAX API Module
+## Coinbase pro API Module
 ###
 
 
 ##
-# Set GDAX Endpoint Envoironment
+# Set Coinbase Pro Endpoint Envoironment
 #  @param environment string live or sandbox
 #  This function must be executed in order to have the API endpoint set
 function Set-Environment {
@@ -17,20 +17,20 @@ function Set-Environment {
     
     switch($Script:environment){
         "live"{
-            $Script:uri = 'https://api.gdax.com'
+            $Script:uri = 'https://api.pro.coinbase.com'
         }
         "sandbox"{
-            $Script:uri = 'https://api-public.sandbox.gdax.com'
+            $Script:uri = 'https://api-public.sandbox.pro.coinbase.com'
         }
     }
 }
 
 
 ##
-# Get GDAX API Endpoint
+# Get Coinbase Pro API Endpoint
 function Get-Endpoint {
     if( $Script:uri.Length -lt 1 ){
-        throw "No GDAX Environment set. (call Set-GDAXEnvironment to set one)"
+        throw "No Coinabse Pro Environment set. (call Set-CBPROEnvironment to set one)"
     }
 
     return $Script:uri
@@ -38,7 +38,7 @@ function Get-Endpoint {
 
 
 ##
-# Invoke a call to the GDAX API
+# Invoke a call to the Coinbase Pro API
 Function Invoke-Endpoint {
     param(
         [Parameter(Mandatory=$true)]
@@ -56,7 +56,7 @@ Function Invoke-Endpoint {
     # prepare the parameters for invoking the api
     $invokeParams = @{
         'Method' = $Method;
-        'Uri' = ((Get-Endpoint) + $Path);
+        'Uri' = ((Get-CBPROEndpoint) + $Path);
     }
 
     # check for Body contents
@@ -68,10 +68,10 @@ Function Invoke-Endpoint {
     # if it is a private endpoint, get some authentication going
     if( $Private ){
         # load authentication module
-        Get-Module gdax-auth | Out-Null
+        Get-Module cbpro-auth | Out-Null
 
         # set authentication headers
-        $invokeParams.Add('Headers', (get-GDAXHeaders -method $Method -path $Path -body $Body))
+        $invokeParams.Add('Headers', (get-CBPROHeaders -method $Method -path $Path -body $Body))
     }
 
     return Invoke-RestMethod @invokeParams

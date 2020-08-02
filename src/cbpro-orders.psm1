@@ -1,5 +1,5 @@
 ###
-## GDAX API Orders Module
+## Coinbase Pro API Orders Module
 ###
 
 $Script:base = '/orders'
@@ -21,15 +21,19 @@ Function Get-Orders {
 
     $path = $Script:base
 
-    if( $ProductID -or $Status ){
-        $path += '?'
+    $glue = '?'
+
+    if( $MyInvocation.BoundParameters.ContainsKey('ProductID') ){
+        $path += $glue + 'product_id=' + $ProductID
+
+        $glue = '&'
     }
 
-    if( $ProductID ){ $path += 'product_id=' + $ProductID }
+    if( $MyInvocation.BoundParameters.ContainsKey('Status') ){
+        $path += $glue + 'status=' + $Status
+    }
 
-    if( $Status ){ $path += 'status=' + $Status }
-
-    return Invoke-GDAXEndpoint -Private -Method Get -Path $path
+    return Invoke-CBPROEndpoint -Private -Method Get -Path $path
 }
 
 
@@ -43,26 +47,26 @@ Function Get-Order {
 
     $path = $Script:base,$ID -join '/'
 
-    return Invoke-GDAXEndpoint -Private -Method Get -Path $path
+    return Invoke-CBPROEndpoint -Private -Method Get -Path $path
 }
 
 
 ##
-# Cancel ALL Of Your Orders
+# Cancel ALL Your Orders
 #  optional Product parameter to only Cancel orders for a specific Product
 Function Remove-Orders {
     param(
         [Parameter(Mandatory=$false)]
-        $Product
+        $ProductID
     )
 
     $path = $Script:base
 
-    if( $Product ){
-        $path += '?product_id=' + $Product
+    if( $MyInvocation.BoundParameters.ContainsKey('ProductID') ){
+        $path += '?product_id=' + $ProductID
     }
 
-    return Invoke-GDAXEndpoint -Private -Method Delete -Path $path
+    return Invoke-CBPROEndpoint -Private -Method Delete -Path $path
 }
 
 
@@ -76,14 +80,13 @@ Function Remove-Order {
 
     $path = $Script:base,$ID -join '/'
 
-    Invoke-GDAXEndpoint -Private -Method Delete -Path $path
+    Invoke-CBPROEndpoint -Private -Method Delete -Path $path
 }
 
 
 ##
 # Place a new Order
 #  this function supports all possible parameters used in Limit and Market orders
-#  using New-LimitOrder or New-MarketOrder might be more readable in code
 Function New-Order {
     param(
         [Parameter(Mandatory=$true)]
@@ -134,13 +137,11 @@ Function New-Order {
         'product_id' = $ProductID;
     }
 
-    # set self trade prevention if one is provided
-    if( $SelfTradePrevention ){
-        $order.Add('stp', $SelfTradePrevention);
-    }
-
+    # set self trade prevention, dc if none is provided
+    $order.Add('stp', $SelfTradePrevention);
+    
     # stop and stop_price must go together
-    if( $Stop.Length -gt 0 -and $StopPrice -gt 0 ){
+    if( $MyInvocation.BoundParameters.ContainsKey('Stop') -and $MyInvocation.BoundParameters.ContainsKey('StopPrice') ){
         $order.Add('stop', $Stop)
         $order.Add('stop_price', $StopPrice)
     }
@@ -151,41 +152,39 @@ Function New-Order {
     }
 
 
-    # limit order needs a specific set or parameters
-    if( $Type -eq 'limit' ){
-        # this set to be precise
-        $limitParams = @{}
-        # maybe more, see which one of these are provided
-        'Price','Size','TimeInForce','CancelAfter','PostOnly' |ForEach-Object{
-            if ( $MyInvocation.BoundParameters.ContainsKey($_) ) {
-                $limitParams.Add($_ , $MyInvocation.BoundParameters.Item($_) )
+    $orderParams = @{}
+    # process one Type
+    switch ($Type) {
+        # limit order needs a specific set or parameters
+        'limit' {
+            # this set to be precise
+            'Price','Size','TimeInForce','CancelAfter','PostOnly' |ForEach-Object{
+                if ( $MyInvocation.BoundParameters.ContainsKey($_) ) {
+                    $orderParams.Add($_ , $MyInvocation.BoundParameters.Item($_) )
+                }
             }
+
+            # check validity and add Limit order properties if no error is thrown
+            $order += (New-LimitOrder @orderParams)
         }
 
-        # check validity and add if no error is thrown
-        $order += (New-LimitOrder @limitParams)
-    }
-
-    # market order needs another set of specific parameters, obviously
-    if( $Type -eq 'market' ){
-        # this set to be precise
-        $marketParams = @{}
-        # maybe one of these as well
-        'Funds','Size' |ForEach-Object{
-            if ( $MyInvocation.BoundParameters.ContainsKey($_) ) {
-                $marketParams.Add($_ , $MyInvocation.BoundParameters.Item($_) )
+        # market order needs another set of specific parameters, obviously
+        'market' {
+            # this set to be precise
+            'Funds','Size' |ForEach-Object{
+                if ( $MyInvocation.BoundParameters.ContainsKey($_) ) {
+                    $orderParams.Add($_ , $MyInvocation.BoundParameters.Item($_) )
+                }
             }
+
+            # check validity and add Market order properties if no error is thrown
+            $order += (New-MarketOrder @orderParams)
         }
-
-        # check validity and add if no error is thrown
-        $order += (New-MarketOrder @marketParams)
     }
-
-    
 
 
     if($Place){
-        return Invoke-Order $order
+        return Invoke-CBPROOrder $order
     }else{
         return $order
     }
@@ -253,7 +252,7 @@ Function New-LimitOrder {
 # Place a new Order of Market type
 #  they have NO pricing guarantee
 #   will execute instantly
-#   will not eppear in Order Books
+#   will not appear in Order Books
 #   will always be charged a Takers' fee
 Function New-MarketOrder {
     param(
@@ -268,7 +267,7 @@ Function New-MarketOrder {
         throw 'Market Order needs at least one of Funds or Size parameters'
     }
 
-    # lowercase the property names so the are good to go
+    # lowercase the property names so they are good to go
     $return = @{}
     if( $MyInvocation.BoundParameters.ContainsKey('Funds') ){
         $return.Add('funds', $Funds)
@@ -282,32 +281,42 @@ Function New-MarketOrder {
 
 
 ##
-# Place the provided Order object
+# Place the provided Order
 Function Invoke-Order {
     param(
         [Parameter(Mandatory=$true)]
         $Order
     )
 
-    return (Invoke-GDAXEndpoint -Private -Method Post -Path $Script:base -Body ($Order |ConvertTo-Json))
+    return (Invoke-CBPROEndpoint -Private -Method Post -Path $Script:base -Body ($Order |ConvertTo-Json))
 }
 
 
 ##
 # Find the Fee percentage for an order
 Function Find-Fee {
+    param(
+        [Parameter(Mandatory=$true)]
+        $ProductID
+    )
 
-    # TODO: incorporate a quick fiat-Volume lookup
-    $volume = 1000
+    # load users module
+    Get-Module cbpro-users | Out-Null
 
-    switch($volume){
+    # get the 30 days trailing volume
+    $trail = Get-CBPROTrailingVolume
+
+    # filter the right product
+    $product = $trail |Where-Object{ $_.product_id -eq $ProductID } |Select-Object -First 1
+
+    switch($true){
         # under 10 M
-        ($volume -lt 10.000.000) {
+        ([double]$product.volume -lt 10000000) {
             return 0.3
         }
 
         # over 100 M
-        ($volume -ge 100.000.000) {
+        ([double]$product.volume -ge 100000000) {
             return 0.1
         }
 
@@ -318,4 +327,4 @@ Function Find-Fee {
     }
 }
 
-Export-ModuleMember Get-Orders, Get-Order, Remove-Orders, Remove-Order, New-Order, Find-Fee
+Export-ModuleMember Get-Orders, Get-Order, Remove-Orders, Remove-Order, New-Order, Invoke-Order, Find-Fee

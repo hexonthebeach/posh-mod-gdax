@@ -1,5 +1,5 @@
 ###
-## GDAX API Fills Module
+## Coinbase Pro API Fills Module
 ###
 
 $Script:base = '/fills'
@@ -10,7 +10,7 @@ $Script:base = '/fills'
   Gets a list of recent Fills.
 
  .Description
-  Calls the GDAX API Private endpoint to fetch a list of recent Fills.
+  Calls the Coinbase Pro API Private endpoint to fetch a list of recent Fills.
 
  .Parameter ProductID
   A ProductID to filter the list of Fills
@@ -58,7 +58,7 @@ Function Get-Fills {
         $endpoint += $c + "trade_id=" + $Before
     }
 
-    return Invoke-GDAXEndpoint -Method Get -Path $endpoint -Private
+    return Invoke-CBPROEndpoint -Method Get -Path $endpoint -Private
 }
 
 

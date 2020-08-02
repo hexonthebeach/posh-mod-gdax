@@ -1,5 +1,5 @@
 ###
-## GDAX API Authentication Headers Module
+## Coinbase Pro API Accounts Module
 ###
 
 $Script:base = '/accounts'
@@ -8,7 +8,7 @@ $Script:base = '/accounts'
 ##
 # List Accounts
 Function Get-Accounts {
-    return Invoke-GDAXEndpoint -Private -Method GET -Path ($Script:base)
+    return Invoke-CBPROEndpoint -Private -Method GET -Path ($Script:base)
 }
 
 
@@ -23,7 +23,7 @@ Function Get-Account {
 
     $path = $Script:base,$account -join '/'
 
-    return Invoke-GDAXEndpoint -Private -Method GET -Path $path
+    return Invoke-CBPROEndpoint -Private -Method GET -Path $path
 }
 
 
@@ -38,7 +38,7 @@ Function Get-AccountHistory {
 
     $path = $Script:base,$account,'ledger' -join '/'
 
-    return Invoke-GDAXEndpoint -Private -Method GET -Path $path
+    return Invoke-CBPROEndpoint -Private -Method GET -Path $path
 }
 
 
@@ -53,7 +53,7 @@ Function Get-AccountHolds {
 
     $path = $Script:base,$account,'holds' -join '/'
 
-    return Invoke-GDAXEndpoint -Private -Method GET -Path $path
+    return Invoke-CBPROEndpoint -Private -Method GET -Path $path
 }
 
 
