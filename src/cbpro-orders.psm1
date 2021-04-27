@@ -300,30 +300,14 @@ Function Find-Fee {
         $ProductID
     )
 
-    # load users module
-    Get-Module cbpro-users | Out-Null
+    try{
+        $fees = Invoke-CBPROEndpoint -Method GET -Path "fees" -Private
 
-    # get the 30 days trailing volume
-    $trail = Get-CBPROTrailingVolume
-
-    # filter the right product
-    $product = $trail |Where-Object{ $_.product_id -eq $ProductID } |Select-Object -First 1
-
-    switch($true){
-        # under 10 M
-        ([double]$product.volume -lt 10000000) {
-            return 0.3
-        }
-
-        # over 100 M
-        ([double]$product.volume -ge 100000000) {
-            return 0.1
-        }
-
-        # between 10 M and 100 M
-        default {
-            return 0.2
-        }
+        # return the highest of the two to be on the safe side
+        return [Math]::Max($fees.maker_fee_rate, $fees.taker_fee_rate)
+    }catch{
+        # return 1% in case of emergency
+        return 0.01
     }
 }
 
