@@ -2,7 +2,7 @@
 ## Coinbase Pro API Accounts Module
 ###
 
-$Script:base = '/accounts'
+$Script:base = '/api/v3/brokerage/accounts'
 
 
 ##

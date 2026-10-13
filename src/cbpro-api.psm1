@@ -17,10 +17,10 @@ function Set-Environment {
     
     switch($Script:environment){
         "live"{
-            $Script:uri = 'https://api.pro.coinbase.com'
+            $Script:uri = 'https://api.coinbase.com'
         }
         "sandbox"{
-            $Script:uri = 'https://api-public.sandbox.pro.coinbase.com'
+            $Script:uri = 'https://api-sandbox.coinbase.com'
         }
     }
 }

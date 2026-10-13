@@ -2,7 +2,7 @@
 ## Coinbase Pro API Fills Module
 ###
 
-$Script:base = '/fills'
+$Script:base = '/api/v3/brokerage/orders/historical/fills'
 
 
 <#

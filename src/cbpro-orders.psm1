@@ -2,7 +2,7 @@
 ## Coinbase Pro API Orders Module
 ###
 
-$Script:base = '/orders'
+$Script:base = '/api/v3/brokerage/orders'
 
 
 ##

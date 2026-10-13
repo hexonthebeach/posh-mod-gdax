@@ -2,7 +2,7 @@
 ## Coinbase Pro API Products Module
 ###
 
-$Script:base = '/products'
+$Script:base = '/api/v3/brokerage/products'
 
 
 ##
